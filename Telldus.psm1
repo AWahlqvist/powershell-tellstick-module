@@ -349,33 +349,39 @@ function Get-TDDeviceHistory
     [Alias('id')]
     [string] $DeviceID)
 
-    if ($Telldus -eq $null) {
-        Write-Error "You must first connect using the Connect-TelldusLive cmdlet"
-        return
+    BEGIN {
+        if ($Telldus -eq $null) {
+            Write-Error "You must first connect using the Connect-TelldusLive cmdlet"
+            return
+        }
     }
 
-    $PostActionURI="http://live.telldus.com/device/history?id=$DeviceID"
+    PROCESS {
+        $PostActionURI="http://live.telldus.com/device/history?id=$DeviceID"
 
-    $HistoryEvents = Invoke-RestMethod -Uri $PostActionURI -WebSession $Global:Telldus | select -ExpandProperty History
+        $HistoryEvents = Invoke-RestMethod -Uri $PostActionURI -WebSession $Global:Telldus | select -ExpandProperty History
 
-    foreach ($HistoryEvent in $HistoryEvents)
-    {
-        $PropertiesToOutput = @{
-                             'DeviceID' = $DeviceID
-                             'State' = switch ($HistoryEvent.state)
-                                       {
-                                             1 { "On" }
-                                             2 { "Off" }
-                                            16 { "Dimmed" }
-                                            default { "Unknown" }
-                                       }
-                             'Statevalue' = $HistoryEvent.statevalue
-                             'Origin' = $HistoryEvent.Origin;
-                             'EventDate' = (Get-Date "1970-01-01 00:00:00").AddSeconds($HistoryEvent.ts)
-                             }
+        foreach ($HistoryEvent in $HistoryEvents)
+        {
+            $PropertiesToOutput = @{
+                                 'DeviceID' = $DeviceID
+                                 'State' = switch ($HistoryEvent.state)
+                                           {
+                                                 1 { "On" }
+                                                 2 { "Off" }
+                                                16 { "Dimmed" }
+                                                default { "Unknown" }
+                                           }
+                                 'Statevalue' = $HistoryEvent.statevalue
+                                 'Origin' = $HistoryEvent.Origin;
+                                 'EventDate' = (Get-Date "1970-01-01 00:00:00").AddSeconds($HistoryEvent.ts)
+                                 }
 
-        $returnObject = New-Object -TypeName PSObject -Property $PropertiesToOutput
+            $returnObject = New-Object -TypeName PSObject -Property $PropertiesToOutput
 
-        Write-Output $returnObject | Select-Object DeviceID, EventDate, State, Statevalue, Origin
+            Write-Output $returnObject | Select-Object DeviceID, EventDate, State, Statevalue, Origin
+        }
     }
+
+    END { }
 }
