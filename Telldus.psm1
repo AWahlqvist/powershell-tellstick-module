@@ -7,7 +7,7 @@ function Connect-TelldusLive
 
 
     $LoginPostURI="https://login.telldus.com/openid/server?openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&openid.mode=checkid_setup&openid.return_to=http%3A%2F%2Fapi.telldus.com%2Fexplore%2Fclients%2Flist&openid.realm=http%3A%2F%2Fapi.telldus.com&openid.ns.sreg=http%3A%2F%2Fopenid.net%2Fextensions%2Fsreg%2F1.1&openid.sreg.required=email&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select#"
-    $turnOffURI="http://api.telldus.com/explore/device/turnOff"
+    $turnOffURI="https://api.telldus.com/explore/device/turnOff"
 
     $TelldusWEB = Invoke-WebRequest $turnOffURI -SessionVariable Global:Telldus
 
@@ -44,7 +44,7 @@ function Get-TDDevice
         return
     }
 
-    $PostActionURI="http://api.telldus.com/explore/doCall"
+    $PostActionURI="https://api.telldus.com/explore/doCall"
     $Action='list'
     $SupportedMethods=19
 
@@ -132,7 +132,7 @@ function Set-TDDevice
             return
         }
 
-        $PostActionURI = "http://api.telldus.com/explore/doCall"
+        $PostActionURI = "https://api.telldus.com/explore/doCall"
     }
 
     PROCESS {
@@ -169,16 +169,22 @@ function Get-TDSensor
         return
     }
 
-    $sensorListURI="http://api.telldus.com/explore/sensors/list"
-    $PostActionURI="http://api.telldus.com/explore/doCall"
+    $PostActionURI="https://api.telldus.com/explore/doCall"
 
-
-    $SensorList=Invoke-WebRequest -Uri $sensorListURI -WebSession $Global:Telldus
-    $SensorListForm=$SensorList.Forms
+    $SensorListKeys = @{
+        'group' = 'sensors'
+        'method' = 'list'
+        'field_includeIgnored' = ''
+        'field_includeValues' = ''
+        'field_includeScale' = ''
+        'field_useAlternativeData' = ''
+        'responseAsXml' = 'xml'
+        'responseAsJson' = 'json'
+    }
 
     $ActionResults=$null
 
-    [xml] $ActionResults=Invoke-WebRequest -Uri $PostActionURI -WebSession $Global:Telldus -Method POST -Body $SensorListForm.Fields
+    [xml] $ActionResults=Invoke-WebRequest -Uri $PostActionURI -WebSession $Global:Telldus -Method POST -Body $SensorListKeys
     [datetime] $TelldusDate="1970-01-01 00:00:00"
 
     $TheResults=$ActionResults.sensors.ChildNodes
@@ -234,8 +240,8 @@ function Get-TDSensorData
             return
         }
 
-        $sensorDataURI="http://api.telldus.com/explore/sensor/info"
-        $PostActionURI="http://api.telldus.com/explore/doCall"
+        $sensorDataURI="https://api.telldus.com/explore/sensor/info"
+        $PostActionURI="https://api.telldus.com/explore/doCall"
     }
 
     PROCESS {
@@ -310,7 +316,7 @@ function Set-TDDimmer
             return
         }
 
-        $PostActionURI="http://api.telldus.com/explore/doCall"
+        $PostActionURI="https://api.telldus.com/explore/doCall"
         $Action='dim'
     }
 
@@ -353,7 +359,7 @@ function Get-TDDeviceHistory
     }
 
     PROCESS {
-        $PostActionURI="http://live.telldus.com/device/history?id=$DeviceID"
+        $PostActionURI="https://live.telldus.com/device/history?id=$DeviceID"
 
         $HistoryEvents = Invoke-RestMethod -Uri $PostActionURI -WebSession $Global:Telldus | select -ExpandProperty History
 
@@ -437,7 +443,7 @@ function Get-TDSensorHistoryData
     }
 
     PROCESS {
-        $PostActionURI="http://live.telldus.com/sensor/history?id=$DeviceID"
+        $PostActionURI="https://live.telldus.com/sensor/history?id=$DeviceID"
 
         if ($PSCmdlet.ParameterSetName -eq 'DateRange') {
             if (-not $Before) {
