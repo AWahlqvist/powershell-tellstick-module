@@ -1,21 +1,103 @@
 function Connect-TelldusLive
 {
-    [cmdletbinding()]
+    <#
+    .SYNOPSIS
+    Connects to Telldus Live! using the specified credentials.
+
+    .DESCRIPTION
+    This function connects to Telldus Live! using the specified credentials.
+
+    .EXAMPLE
+    Connect-TelldusLive
+
+    .EXAMPLE
+    Connect-TelldusLive -Credential $PSCredentialObject
+
+    .PARAMETER Credential
+    Specifies a PSCredential object. For more information about the PSCredential object, type Get-Help Get-Credential.
+
+    .PARAMETER SaveCredential
+    Add to switch to save the credential you specify (encrypted).
+    
+    You can then connect by simply using the -UseSavedCredential switch. The credential is saved using your logon session.
+
+    .PARAMETER UseSavedCredential
+    Specify this switch to use a saved credential instead of specifying one.
+
+    .NOTES
+    Thank you Ispep (automatiserar.se) for coming up with the idea of saving credentials!
+
+    #>
+
+    [cmdletbinding(DefaultParameterSetName='SpecifyCredential')]
     param(
-          [Parameter(Mandatory=$True)]
-          [System.Management.Automation.PSCredential] $Credential)
+              [Parameter(Mandatory=$True, ParameterSetName='SpecifyCredential')]
+              [System.Management.Automation.PSCredential] $Credential,
+
+              [Parameter(Mandatory=$false, ParameterSetName='SpecifyCredential')]
+              [Switch] $SaveCredential,
+
+              [Parameter(Mandatory=$false, ParameterSetName='SavedCredential')]
+              [Switch] $UseSavedCredential
+          )
 
 
     $LoginPostURI="https://login.telldus.com/openid/server?openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&openid.mode=checkid_setup&openid.return_to=http%3A%2F%2Fapi.telldus.com%2Fexplore%2Fclients%2Flist&openid.realm=http%3A%2F%2Fapi.telldus.com&openid.ns.sreg=http%3A%2F%2Fopenid.net%2Fextensions%2Fsreg%2F1.1&openid.sreg.required=email&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select#"
     $turnOffURI="https://api.telldus.com/explore/device/turnOff"
+    $CredentialFolder = (Resolve-Path "$($env:APPDATA)\TelldusPowerShellModule").Path
+    $CredentialFilename = 'TelldusCredentialFile.xml'
+    $CredentialFilePath = Join-Path -Path $CredentialFolder -ChildPath $CredentialFilename
 
     $TelldusWEB = Invoke-WebRequest $turnOffURI -SessionVariable Global:Telldus
+
+    if ($PSCmdlet.ParameterSetName -eq 'SavedCredential') {
+        if (Test-Path -Path $CredentialFilePath) {
+            $CredentialFromDisk = Import-Clixml -Path $CredentialFilePath
+            # Load some credentials
+            $Username = $CredentialFromDisk.Username
+            # Get the password from the file
+            $Password = $CredentialFromDisk.Password | ConvertTo-SecureString
+
+            # Build the credential
+            $Credential = New-Object System.Management.Automation.PsCredential($Username,$Password)
+        }
+        else {
+            throw "Didn't locate any saved credentials. Please run this command with the 'SaveCredential' switch first to store the credentials."
+        }
+    }
 
     $form = $TelldusWEB.Forms[0]
     $form.Fields["email"] = $Credential.UserName
     $form.Fields["password"] = $Credential.GetNetworkCredential().Password
 
-    $TelldusWEB = Invoke-WebRequest -Uri $LoginPostURI -WebSession $Global:Telldus -Method POST -Body $form.Fields
+    try {
+        $TelldusWEB = Invoke-WebRequest -Uri $LoginPostURI -WebSession $Global:Telldus -Method POST -Body $form.Fields -ErrorAction Stop
+    }
+    catch {
+        throw "Failed to logon to Telldus Live! The error was: $($_.ToString())"
+    }
+
+    # Let's verify that we are logged in
+    try {
+        $FetchDevices = Get-TDDevice -ErrorAction Stop
+    }
+    catch {
+        throw "Failed to call Telldus Live! Verify that your credentials are correct and that you can connect to the Telldus Live! service."
+    }
+
+    if ($SaveCredential.IsPresent) {
+
+        if (-not (Test-Path -Path $CredentialFolder)) {
+            $null = New-Item $CredentialFolder -Force -ItemType Directory
+        }
+
+        $SaveCredentialObj = [PSCustomObject] @{
+            'Username' = $Credential.UserName
+            'Password' = $Credential.Password | ConvertFrom-SecureString
+        }
+
+        $SaveCredentialObj | Export-Clixml $CredentialFilePath -Force
+    }
 
     $form = $null
 
@@ -39,56 +121,65 @@ function Get-TDDevice
 
     #>
 
-    if ($Telldus -eq $null) {
-        Write-Error "You must first connect using the Connect-TelldusLive cmdlet"
-        return
+    [CmdletBinding()]
+    Param()
+
+    BEGIN { 
+        if ($Telldus -eq $null) {
+            Write-Error "You must first connect using the Connect-TelldusLive cmdlet"
+            return
+        }
     }
 
-    $PostActionURI="https://api.telldus.com/explore/doCall"
-    $Action='list'
-    $SupportedMethods=19
+    PROCESS {
+        $PostActionURI="https://api.telldus.com/explore/doCall"
+        $Action='list'
+        $SupportedMethods=19
 
-    $request = @{'group'='devices';'method'= $Action;'param[supportedMethods]'= $SupportedMethods;'responseAsXml'='xml'}
+        $request = @{'group'='devices';'method'= $Action;'param[supportedMethods]'= $SupportedMethods;'responseAsXml'='xml'}
 
-    [xml] $ActionResults=Invoke-WebRequest -Uri $PostActionURI -WebSession $Global:Telldus -Method POST -Body $request
+        [xml] $ActionResults=Invoke-WebRequest -Uri $PostActionURI -WebSession $Global:Telldus -Method POST -Body $request
 
-    $Results=$ActionResults.devices.ChildNodes
+        $Results=$ActionResults.devices.ChildNodes
 
-    foreach ($Result in $Results)
-    {
-        $PropertiesToOutput = @{
-                             'Name' = $Result.name;
-                             'State' = switch ($Result.state)
-                                       {
-                                             1 { "On" }
-                                             2 { "Off" }
-                                            16 { "Dimmed" }
-                                            default { "Unknown" }
-                                       }
-                             'DeviceID' = $Result.id;
+        foreach ($Result in $Results) {
+
+            $PropertiesToOutput = @{
+                                 'Name' = $Result.name;
+                                 'State' = switch ($Result.state)
+                                           {
+                                                 1 { "On" }
+                                                 2 { "Off" }
+                                                16 { "Dimmed" }
+                                                default { "Unknown" }
+                                           }
+                                 'DeviceID' = $Result.id;
                              
 
-                             'Statevalue' = $Result.statevalue
-                             'Methods' = switch ($Result.methods)
-                                         {
-                                             3 { "On/Off" }
-                                            19 { "On/Off/Dim" }
-                                            default { "Unknown" }
-                                         }
-                             'Type' = $Result.type;
-                             'Client' = $Result.client;
-                             'ClientName' = $Result.clientName;
-                             'Online' = switch ($Result.online)
-                                        {
-                                            0 { $false }
-                                            1 { $true }
-                                        }
-                             }
+                                 'Statevalue' = $Result.statevalue
+                                 'Methods' = switch ($Result.methods)
+                                             {
+                                                 3 { "On/Off" }
+                                                19 { "On/Off/Dim" }
+                                                default { "Unknown" }
+                                             }
+                                 'Type' = $Result.type;
+                                 'Client' = $Result.client;
+                                 'ClientName' = $Result.clientName;
+                                 'Online' = switch ($Result.online)
+                                            {
+                                                0 { $false }
+                                                1 { $true }
+                                            }
+                                 }
 
-        $returnObject = New-Object -TypeName PSObject -Property $PropertiesToOutput
+            $returnObject = New-Object -TypeName PSObject -Property $PropertiesToOutput
 
-        Write-Output $returnObject | Select-Object Name, DeviceID, State, Statevalue, Methods, Type, ClientName, Client, Online
+            Write-Output $returnObject | Select-Object Name, DeviceID, State, Statevalue, Methods, Type, ClientName, Client, Online
+        }
     }
+
+    END { }
 }
 
 function Set-TDDevice
@@ -107,11 +198,17 @@ function Set-TDDevice
     .EXAMPLE
     Set-TDDevice -DeviceID 123456 -Action turnOn
 
+    .EXAMPLE
+    SET-TDDevice -DeviceID 123456 -Action bell
+
     .PARAMETER DeviceID
     The DeviceID of the device to turn off or on. (Pipelining possible)
 
     .PARAMETER Action
-    What to do with that device. Possible values are "turnOff" or "turnOn".
+    What to do with that device. Possible values are "turnOff", "turnOn" and "bell".
+
+    .NOTES
+    Thank you Ispep (automatiserar.se) for fixing "bell" support!
 
     #>
 
@@ -122,7 +219,7 @@ function Set-TDDevice
       [Alias('id')]
       [string] $DeviceID,
       [Parameter(Mandatory=$True)]
-      [ValidateSet("turnOff","turnOn")]
+      [ValidateSet("turnOff","turnOn", "bell")]
       [string] $Action)
 
 
@@ -404,9 +501,13 @@ function Get-TDSensorHistoryData
     .PARAMETER After
     Specify from which date you would like to retrieve sensor history.
 
+    Always use UTC time.
+
     .PARAMETER Before
     Specify the "end date" of the data samples.
     Default value is current date.
+
+    Always use UTC time.
 
     .EXAMPLE
     Get-TDSensorHistoryData -DeviceID 123456
@@ -451,8 +552,8 @@ function Get-TDSensorHistoryData
             }
 
             if ($Before -gt $After) {
-                $FromDateToPost = [Math]::Floor((New-TimeSpan -Start '1970-01-01' -End $After.ToUniversalTime()).TotalSeconds)
-                $ToDateToPost = [Math]::Floor((New-TimeSpan -Start '1970-01-01' -End $Before.ToUniversalTime()).TotalSeconds)
+                $FromDateToPost = [Math]::Floor((New-TimeSpan -Start '1970-01-01' -End $After).TotalSeconds)
+                $ToDateToPost = [Math]::Floor((New-TimeSpan -Start '1970-01-01' -End $Before).TotalSeconds)
 
                 $PostActionURI = $PostActionURI + "&fromdate=$FromDateToPost" + "&todate=$ToDateToPost"
             }
