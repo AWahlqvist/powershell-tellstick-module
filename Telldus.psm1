@@ -44,7 +44,7 @@ function Connect-TelldusLive
 
     $LoginPostURI="https://login.telldus.com/openid/server?openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&openid.mode=checkid_setup&openid.return_to=http%3A%2F%2Fapi.telldus.com%2Fexplore%2Fclients%2Flist&openid.realm=http%3A%2F%2Fapi.telldus.com&openid.ns.sreg=http%3A%2F%2Fopenid.net%2Fextensions%2Fsreg%2F1.1&openid.sreg.required=email&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select#"
     $turnOffURI="https://api.telldus.com/explore/device/turnOff"
-    $CredentialFolder = (Resolve-Path "$($env:APPDATA)\TelldusPowerShellModule").Path
+    $CredentialFolder = Join-Path -Path $($env:APPDATA) -ChildPath TelldusPowerShellModule
     $CredentialFilename = 'TelldusCredentialFile.xml'
     $CredentialFilePath = Join-Path -Path $CredentialFolder -ChildPath $CredentialFilename
 
@@ -219,7 +219,7 @@ function Set-TDDevice
       [Alias('id')]
       [string] $DeviceID,
       [Parameter(Mandatory=$True)]
-      [ValidateSet("turnOff","turnOn", "bell")]
+      [ValidateSet("turnOff","turnOn", "bell", "down", "up")]
       [string] $Action)
 
 
@@ -580,4 +580,96 @@ function Get-TDSensorHistoryData
     }
 
     END { }
+}
+
+
+function Rename-TDDevice
+{
+
+    <#
+    .SYNOPSIS
+    Renames a device in Telldus Live!
+
+    .DESCRIPTION
+    Renames a device in Telldus Live!
+
+    .EXAMPLE
+    Rename-TDDevice -DeviceID 123456 -NewName MyNewDeviceName
+
+    .PARAMETER DeviceID
+    The DeviceID of the device to rename
+
+    .PARAMETER NewName
+    The new name for that device
+
+    #>
+
+    [CmdletBinding()]
+    param(
+
+      [Parameter(Mandatory=$True, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+      [Alias('id')]
+      [string] $DeviceID,
+
+      [Parameter(Mandatory=$True)]
+      [string] $NewName)
+
+
+    BEGIN {
+        if ($Telldus -eq $null) {
+            Write-Error "You must first connect using the Connect-TelldusLive cmdlet"
+            return
+        }
+
+        $PostActionURI = "https://api.telldus.com/explore/doCall"
+    }
+
+    PROCESS {
+
+        $request = @{'group'='device';'method'= 'setName';'param[id]'= $DeviceID;'param[name]'= $NewName;'responseAsXml'='xml'}
+
+        [xml] $ActionResults=Invoke-WebRequest -Uri $PostActionURI -WebSession $Global:Telldus -Method POST -Body $request
+
+        $Results=$ActionResults.device.status -replace "\s"
+
+        Write-Verbose "Doing action $Action on device $DeviceID. Result: $Results."
+    }
+}
+
+
+function Get-TDEvent
+{
+
+    <#
+    .SYNOPSIS
+    List all events available in Telldus Live!
+
+    .DESCRIPTION
+    List all events available in Telldus Live!
+
+    .EXAMPLE
+    Get-TDEvent
+
+    #>
+
+    [CmdletBinding()]
+    param()
+
+    BEGIN {
+        if ($Telldus -eq $null) {
+            Write-Error "You must first connect using the Connect-TelldusLive cmdlet"
+            return
+        }
+
+        $PostActionURI = "https://api.telldus.com/explore/doCall"
+    }
+
+    PROCESS {
+
+        $request = @{'group'='events';'method'= 'list';'param[listonly]'= 1;'responseAsXml'='xml'}
+
+        [xml] $ActionResults=Invoke-WebRequest -Uri $PostActionURI -WebSession $Global:Telldus -Method POST -Body $request
+
+        $ActionResults.events.event
+    }
 }
