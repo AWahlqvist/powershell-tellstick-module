@@ -4,6 +4,10 @@ function InvokeTelldusAction
 
     BEGIN {
         $ApiUri = 'https://tl.p0wershell.com/api/InvokeAction'
+
+        if (-not [Net.ServicePointManager]::SecurityProtocol.HasFlag([Net.SecurityProtocolType]::Tls12) -AND $EnableTls12) {
+            [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
+        }
     }
 
     PROCESS {
