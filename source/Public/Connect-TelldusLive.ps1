@@ -89,15 +89,24 @@ function Connect-TelldusLive
             $RequestToken = GetTelldusRequestToken
             Write-Output "Please go to the following URL to authenticate this module:`n$($RequestToken.AuthURL)"
 
-            while ($UserResponse -notin 'y','n') {
-                $UserResponse = Read-Host "Is the module authenticated? (Y/N)"
-            }
+            $PollingAttempts = 20
+            Do {
+                $PollingAttempts--
+                $AuthFailed = $false
 
-            if ($UserResponse -eq 'y') {
-                $AccessToken = GetTelldusAccessToken -RequestToken $RequestToken
+                try {
+                    $AccessToken = GetTelldusAccessToken -RequestToken $RequestToken -ErrorAction Stop
+                }
+                catch {
+                    $AuthFailed = $true
+
+                    Start-Sleep -Seconds 15
+                }
             }
-            else {
-                return
+            while ($AuthFailed -and $PollingAttempts -gt 0)
+
+            if (-not $AccessToken) {
+                throw "Authorization failed or timed out. Please try again."
             }
 
             if ($SaveCredential.IsPresent) {
