@@ -20,6 +20,12 @@ function Connect-TelldusLive
     The name of the profile you use to connect. You can leave this to "Default" (default value)
     if you don't have more than one Telldus Live! account.
 
+    .PARAMETER Credential
+    If you have a known access token, you can specify it as a PSCredential object.
+
+    Username should be the AccessToken
+    Password Should be the AccessTokenSecret
+
     .PARAMETER AccessToken
     If you have a known access token, you can specify it here (not the AccessTokenSecret)
 
@@ -40,6 +46,9 @@ function Connect-TelldusLive
     Param (
         [Parameter(Mandatory=$false)]
         $Profile = 'Default',
+
+        [Parameter(Mandatory=$true, ParameterSetName='SpecifyAccessTokenAsCredential')]
+        [PSCredential] $Credential,
 
         [Parameter(Mandatory=$true, ParameterSetName='SpecifyAccessToken')]
         $AccessToken,
@@ -88,6 +97,13 @@ function Connect-TelldusLive
             $AccessToken = [PSCustomObject] @{
                 Token = $AccessToken
                 TokenSecret = $AccessTokenSecret
+            }
+        }
+        elseif ($PSCmdlet.ParameterSetName -eq 'SpecifyAccessTokenAsCredential') {
+            # Build the credential
+            $AccessToken = [PSCustomObject] @{
+                Token = $Credential.UserName
+                TokenSecret = $Credential.Password
             }
         }
         else {
