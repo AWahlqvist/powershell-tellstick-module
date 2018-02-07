@@ -1,9 +1,9 @@
 $ScriptRoot = $PSScriptRoot
 
 $ModuleToBuild = @{
-    Name = 'Telldus'
+    Name = 'AutomaTD'
     Directory = Join-Path -Path $ScriptRoot -ChildPath .\source
-    Fullname = Join-Path -Path $ScriptRoot -ChildPath .\source\Telldus.psd1
+    Fullname = Join-Path -Path $ScriptRoot -ChildPath .\source\AutomaTD.psd1
 }
 
 # Make sure we have the latest version of the module loaded in memory

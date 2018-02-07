@@ -57,7 +57,12 @@ function Connect-TelldusLive
     BEGIN { }
 
     PROCESS {
-        $AccessTokenFolder = Join-Path -Path $($env:APPDATA) -ChildPath TelldusPowerShellModule
+        $AccessTokenFolder = Join-Path -Path $($env:APPDATA) -ChildPath AutomaTD
+
+        if ( -not (Test-Path -Path $AccessTokenFolder)) {
+            $null = New-Item -Path $AccessTokenFolder -ItemType Directory -Force
+        }
+
         $AccessTokenFilename = "TelldusAccessToken-$($Profile).json"
         $AccessTokenFilePath = Join-Path -Path $AccessTokenFolder -ChildPath $AccessTokenFilename
 
