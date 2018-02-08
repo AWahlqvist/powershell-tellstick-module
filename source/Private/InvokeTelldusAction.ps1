@@ -27,5 +27,8 @@ function InvokeTelldusAction
         }
     }
 
-    END { }
+    END {
+        Remove-Variable Payload -ErrorAction SilentlyContinue
+        [GC]::Collect()
+    }
 }
