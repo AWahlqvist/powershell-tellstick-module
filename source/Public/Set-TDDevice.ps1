@@ -16,7 +16,7 @@ function Set-TDDevice
     Set-TDDevice -DeviceID 123456 -Action turnOn
 
     .EXAMPLE
-    SET-TDDevice -DeviceID 123456 -Action bell
+    Set-TDDevice -DeviceID 123456 -Action bell
 
     .PARAMETER DeviceID
     The DeviceID of the device to turn off or on. (Pipelining possible)
@@ -35,7 +35,7 @@ function Set-TDDevice
       [Alias('id')]
       [string] $DeviceID,
       [Parameter(Mandatory=$True)]
-      [ValidateSet("turnOff","turnOn", "bell", "down", "up")]
+      [ValidateSet("turnOff","turnOn", "bell", "down", "up", "stop")]
       [string] $Action)
 
 

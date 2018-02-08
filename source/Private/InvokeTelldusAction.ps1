@@ -17,7 +17,14 @@ function InvokeTelldusAction
             URI = $URI
         } | ConvertTo-Json
 
-        Invoke-RestMethod -Uri $ApiUri -Method Post -Body $Payload
+        $Response = Invoke-RestMethod -Uri $ApiUri -Method Post -Body $Payload
+
+        if ($Response.error) {
+            throw $Response.error
+        }
+        else {
+            $Response
+        }
     }
 
     END { }

@@ -7,6 +7,9 @@ function Get-TDSensor
     .DESCRIPTION
     This command will list all sensors associated with an Telldus Live!-account and their current status and other information.
 
+    .PARAMETER IncludeIgnored
+    Returns hidden/ignored sensors as well
+
     .EXAMPLE
     Get-TDSensor
 
@@ -15,7 +18,9 @@ function Get-TDSensor
 
     #>
     [cmdletbinding()]
-    Param()
+    Param(
+        [switch] $IncludeIgnored
+    )
 
     BEGIN {
         if ($TelldusLiveAccessToken -eq $null) {
@@ -25,7 +30,7 @@ function Get-TDSensor
 
     PROCESS {
 
-        $Response = InvokeTelldusAction -URI "sensors/list"
+        $Response = InvokeTelldusAction -URI "sensors/list?includeValues=1"
 
         $Sensors = $Response.sensor
         [datetime] $TelldusDate="1970-01-01 00:00:00"

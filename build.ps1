@@ -1,8 +1,8 @@
 $ScriptRoot = $PSScriptRoot
 
-$ReleaseNotes = 'Inner beatuy update (module manifest)'
+$ReleaseNotes = 'Added Set-TDSensor and Get-TDClient. Improved error handling. Get-TDSensor now returns the latest value of the sensors, option to fetch hidden/ignored sensors. Set-TDDevice have "stop"-support.'
 $ModuleName = 'AutomaTD'
-$ModuleVersion = '1.0.5'
+$ModuleVersion = '1.1.0'
 $CompatiblePSEditions = @('Core', 'Desktop')
 $PowerShellVersion = '5.1'
 $ModuleGuid = '7acb0966-268a-4bd9-8ce8-c546db8aa696'
