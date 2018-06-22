@@ -1,7 +1,7 @@
 function GetTelldusAccessToken
 {
     [cmdletbinding()]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", Scope="Function", Target="GetTelldusAccessToken")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingConvertToSecureStringWithPlainText", '', Scope="Function", Target="GetTelldusAccessToken")]
     Param(
         $RequestToken
     )

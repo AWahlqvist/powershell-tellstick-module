@@ -1,8 +1,8 @@
 $ScriptRoot = $PSScriptRoot
 
-$ReleaseNotes = 'Added Set-TDSensor and Get-TDClient. Improved error handling. Get-TDSensor now returns the latest value of the sensors, option to fetch hidden/ignored sensors. Set-TDDevice have "stop"-support.'
+$ReleaseNotes = 'Fixed bug when authenticating to Telldus live!'
 $ModuleName = 'AutomaTD'
-$ModuleVersion = '1.1.1'
+$ModuleVersion = '1.1.3'
 $CompatiblePSEditions = @('Core', 'Desktop')
 $PowerShellVersion = '5.1'
 $ModuleGuid = '7acb0966-268a-4bd9-8ce8-c546db8aa696'
