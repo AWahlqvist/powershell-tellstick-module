@@ -141,6 +141,13 @@ function Connect-TelldusLive
         }
 
         $Global:TelldusLiveAccessToken = $AccessToken
+
+        try {
+            $null = Get-TDClient -ErrorAction Stop
+        }
+        catch {
+            throw "Failed to connect to Telldus Live! The error was: $($_.Exception.Message)"
+        }
     }
 
     END {

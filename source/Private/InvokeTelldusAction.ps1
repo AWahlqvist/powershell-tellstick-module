@@ -17,7 +17,12 @@ function InvokeTelldusAction
             URI = $URI
         } | ConvertTo-Json
 
-        $Response = Invoke-RestMethod -Uri $ApiUri -Method Post -Body $Payload
+        $Response = try {
+            Invoke-RestMethod -Uri $ApiUri -Method Post -Body $Payload -ErrorAction Stop
+        }
+        catch {
+            throw "Request failed with error: $($_.Exception.Message)"
+        }
 
         if ($Response.error) {
             throw $Response.error

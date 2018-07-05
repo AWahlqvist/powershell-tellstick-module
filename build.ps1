@@ -1,8 +1,13 @@
+<#
+    To publish after build:
+    Publish-Module -Path $FullPublishPath -NuGetApiKey $NuGetApiKey -Repository PSGallery
+#>
+
 $ScriptRoot = $PSScriptRoot
 
-$ReleaseNotes = 'Fixed bug when authenticating to Telldus live!'
+$ReleaseNotes = 'Added validation of credentials in Connect-TelldusLive cmdlet. Improved error messages.'
 $ModuleName = 'AutomaTD'
-$ModuleVersion = '1.1.3'
+$ModuleVersion = '1.1.4'
 $CompatiblePSEditions = @('Core', 'Desktop')
 $PowerShellVersion = '5.1'
 $ModuleGuid = '7acb0966-268a-4bd9-8ce8-c546db8aa696'
@@ -82,3 +87,5 @@ Compress-Archive -Path $PreparedModulePath -DestinationPath $ZipArhive -Force
 Remove-Item -Path $PreparedModulePath -Force -Recurse
 
 $ModuleToPublish = Join-Path -Path $PublishModulePath -ChildPath $ModuleName
+
+$FullPublishPath = Join-Path -Path $PublishModulePath -ChildPath $ModuleName
