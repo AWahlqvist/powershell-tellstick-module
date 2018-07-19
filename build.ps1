@@ -5,9 +5,9 @@
 
 $ScriptRoot = $PSScriptRoot
 
-$ReleaseNotes = 'Added validation of credentials in Connect-TelldusLive cmdlet. Improved error messages.'
+$ReleaseNotes = 'Fixed IncludeIgnored-switch for Get-TDSensor.'
 $ModuleName = 'AutomaTD'
-$ModuleVersion = '1.1.4'
+$ModuleVersion = '1.1.5'
 $CompatiblePSEditions = @('Core', 'Desktop')
 $PowerShellVersion = '5.1'
 $ModuleGuid = '7acb0966-268a-4bd9-8ce8-c546db8aa696'

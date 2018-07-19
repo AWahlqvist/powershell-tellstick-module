@@ -29,8 +29,14 @@ function Get-TDSensor
     }
 
     PROCESS {
+        if ($IncludeIgnored.IsPresent) {
+            $URI = "sensors/list?includeValues=1&includeIgnored=1"
+        }
+        else {
+            $URI = "sensors/list?includeValues=1&includeIgnored=0"
+        }
 
-        $Response = InvokeTelldusAction -URI "sensors/list?includeValues=1"
+        $Response = InvokeTelldusAction -URI $URI
 
         $Sensors = $Response.sensor
         [datetime] $TelldusDate="1970-01-01 00:00:00"
