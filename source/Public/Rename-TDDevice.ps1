@@ -37,7 +37,7 @@ function Rename-TDDevice
     }
 
     PROCESS {
-        $Response = InvokeTelldusAction -URI "device/setName`?id=$DeviceID&name=$NewName"
+        $Response = InvokeTelldusAction -URI "device/setName`?id=$DeviceID&name=$([uri]::EscapeDataString($NewName))"
 
         Write-Verbose "Renamed device with id $DeviceID. Result: $($Response.status)."
     }
