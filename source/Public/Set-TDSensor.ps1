@@ -70,7 +70,7 @@ function Set-TDSensor
         }
 
         if ($NewName) {
-            $Response = InvokeTelldusAction -URI "sensor/setName?id=$DeviceID&name=$NewName"
+            $Response = InvokeTelldusAction -URI "sensor/setName?id=$DeviceID&name=$([uri]::EscapeDataString($NewName))"
         }
     }
 }
