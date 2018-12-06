@@ -15,9 +15,14 @@ function GetTelldusProperty
 
             $KeyName = $textFormat.ToTitleCase($dataObj.Name.ToLower())
 
-            # To avoid making a breaking change on property name
             if ($KeyName -eq 'Temp') {
                 $KeyName = 'Temperature'
+            }
+            elseif ($KeyName -eq 'rrate') {
+                $KeyName = 'RainRate'
+            }
+            elseif ($KeyName -eq 'rtot') {
+                $KeyName = 'RainTotal'
             }
 
             if ($Properties.ContainsKey($KeyName)) {

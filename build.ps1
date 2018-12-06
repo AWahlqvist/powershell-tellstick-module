@@ -5,9 +5,9 @@
 
 $ScriptRoot = $PSScriptRoot
 
-$ReleaseNotes = "Added function to normalize objects to enable simpler export to for example CSV file."
+$ReleaseNotes = "Resolve rrate and rtot to RainRate and RainTotal for sensor properties"
 $ModuleName = 'AutomaTD'
-$ModuleVersion = '1.3.0'
+$ModuleVersion = '1.3.1'
 $CompatiblePSEditions = @('Core', 'Desktop')
 $PowerShellVersion = '5.1'
 $ModuleGuid = '7acb0966-268a-4bd9-8ce8-c546db8aa696'
