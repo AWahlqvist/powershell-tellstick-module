@@ -46,7 +46,9 @@
     end {
         if ($PropertiesToAlwaysInclude) {
             foreach ($Property in $PropertiesToAlwaysInclude) {
-                $null = $Properties.Add($Property)
+                if ($Property -notin $Properties) {
+                    $null = $Properties.Add($Property)
+                }
             }
         }
 
