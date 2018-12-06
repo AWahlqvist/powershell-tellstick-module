@@ -5,9 +5,9 @@
 
 $ScriptRoot = $PSScriptRoot
 
-$ReleaseNotes = "Post all properties from sensors."
+$ReleaseNotes = "Added function to normalize objects to enable simpler export to for example CSV file."
 $ModuleName = 'AutomaTD'
-$ModuleVersion = '1.2.0'
+$ModuleVersion = '1.3.0'
 $CompatiblePSEditions = @('Core', 'Desktop')
 $PowerShellVersion = '5.1'
 $ModuleGuid = '7acb0966-268a-4bd9-8ce8-c546db8aa696'
