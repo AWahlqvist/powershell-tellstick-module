@@ -5,9 +5,9 @@
 
 $ScriptRoot = $PSScriptRoot
 
-$ReleaseNotes = "Added a parameter to ConvertTo-TDNormalizedOutput to enforce certain properties even if they don't exist in the results"
+$ReleaseNotes = "Added more friendly names for sensor value types"
 $ModuleName = 'AutomaTD'
-$ModuleVersion = '1.3.2'
+$ModuleVersion = '1.3.3'
 $CompatiblePSEditions = @('Core', 'Desktop')
 $PowerShellVersion = '5.1'
 $ModuleGuid = '7acb0966-268a-4bd9-8ce8-c546db8aa696'

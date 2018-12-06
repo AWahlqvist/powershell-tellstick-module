@@ -15,14 +15,16 @@ function GetTelldusProperty
 
             $KeyName = $textFormat.ToTitleCase($dataObj.Name.ToLower())
 
-            if ($KeyName -eq 'Temp') {
-                $KeyName = 'Temperature'
-            }
-            elseif ($KeyName -eq 'rrate') {
-                $KeyName = 'RainRate'
-            }
-            elseif ($KeyName -eq 'rtot') {
-                $KeyName = 'RainTotal'
+            # Resolve sensors types to friendly names if they are known
+            $KeyName = switch ($KeyName) {
+                'Temp'   { 'Temperature' }
+                'rrate'  { 'RainRate' }
+                'rtot'   { 'RainTotal' }
+                'wdir'   { 'WindDirection' }
+                'wavg'   { 'WindAverage' }
+                'watt'   { 'Watt' }
+                'lum'    { 'Luminance' }
+                default  { $KeyName }
             }
 
             if ($Properties.ContainsKey($KeyName)) {
