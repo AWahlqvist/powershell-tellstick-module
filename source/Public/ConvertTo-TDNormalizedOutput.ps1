@@ -1,9 +1,36 @@
 ﻿function ConvertTo-TDNormalizedOutput
 {
+    <#
+    .SYNOPSIS
+    Makes sure all objects have the same set of properties
+
+    .DESCRIPTION
+    Makes sure all objects have the same set of properties
+
+    Makes exporting to for example CSV-files easiser since all sensors will have
+    the same set of "columns" in the file (but blank values for those missing that
+    sensor value type).
+
+    .EXAMPLE
+    Get-TDSensor | Get-TDSensorData | ConvertTo-TDNormalizedOutput
+
+    Makes sure all objects have the same set of properties
+
+    .EXAMPLE
+    Get-TDSensor | Get-TDSensorData | ConvertTo-TDNormalizedOutput -PropertiesToAlwaysInclude CustomSensorData
+
+    Makes sure all objects have the same set of properties, and "CustomSensorData" will always be a property
+    of the objects even if it doesn't exist in the results.
+
+    #>
+
     [cmdletbinding()]
     param(
         [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
-        $InputObject
+        $InputObject,
+
+        [Parameter(Mandatory=$false)]
+        [string[]] $PropertiesToAlwaysInclude
     )
 
     begin {
@@ -17,6 +44,12 @@
     }
 
     end {
+        if ($PropertiesToAlwaysInclude) {
+            foreach ($Property in $PropertiesToAlwaysInclude) {
+                $null = $Properties.Add($Property)
+            }
+        }
+
         $Objects | Select-Object -Property @($Properties)
     }
 }
