@@ -21,6 +21,9 @@ function Get-TDSensorHistoryData
 
     Always use UTC time.
 
+    .PARAMETER PostRawData
+    Specify this switch to post the raw data response from Telldus Live!
+
     .EXAMPLE
     Get-TDSensorHistoryData -DeviceID 123456
 
@@ -45,13 +48,18 @@ function Get-TDSensorHistoryData
         [DateTime] $After,
 
         [Parameter(Mandatory=$false, ValueFromPipelineByPropertyName=$true, ParameterSetName='DateRange')]
-        [DateTime] $Before
+        [DateTime] $Before,
+
+        [Parameter(Mandatory=$false)]
+        [switch] $PostRawData
     )
 
     BEGIN {
         if ($TelldusLiveAccessToken -eq $null) {
             throw "You must first connect using the Connect-TelldusLive cmdlet"
         }
+
+        
     }
 
     PROCESS {
@@ -76,18 +84,26 @@ function Get-TDSensorHistoryData
         $HistoryDataPoints = InvokeTelldusAction -URI $ApiEndpoint
 
 
-        foreach ($HistoryDataPoint in $HistoryDataPoints.history)
-        {
+        foreach ($HistoryDataPoint in $HistoryDataPoints.history) {
+
             $PropertiesToOutput = @{
                                  'DeviceID' = $DeviceID
-                                 'Humidity' = ($HistoryDataPoint.data | Where-Object { $_.Name -eq 'humidity' }).value
-                                 'Temperature' = ($HistoryDataPoint.data | Where-Object { $_.Name -eq 'temp' }).value
                                  'Date' = (Get-Date "1970-01-01 00:00:00").AddSeconds($HistoryDataPoint.ts)
                                  }
 
+            $expandedProperties = GetTelldusProperty -Data $HistoryDataPoint.data
+
+            foreach ($expandedProperty in $expandedProperties) {
+                $PropertiesToOutput += $expandedProperty
+            }
+
+            if ($PostRawData.IsPresent) {
+                $PropertiesToOutput += @{ 'Data' = $HistoryDataPoint.data }
+            }
+
             $returnObject = New-Object -TypeName PSObject -Property $PropertiesToOutput
 
-            Write-Output $returnObject | Select-Object DeviceID, Humidity, Temperature, Date
+            Write-Output $returnObject
         }
     }
 

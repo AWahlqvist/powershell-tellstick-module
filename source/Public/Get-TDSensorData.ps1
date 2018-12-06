@@ -13,6 +13,9 @@ function Get-TDSensorData
     .PARAMETER DeviceID
     The DeviceID of the sensor which data you want to retrieve.
 
+    .PARAMETER HideRawData
+    Specify this switch to hide the raw data response from Telldus Live!
+
     #>
 
     [CmdletBinding()]
@@ -20,7 +23,11 @@ function Get-TDSensorData
 
       [Parameter(Mandatory=$True, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
       [Alias('id')]
-      [string] $DeviceID)
+      [string] $DeviceID,
+      
+      [Parameter(Mandatory=$false)]
+      [switch] $HideRawData
+    )
 
     BEGIN {
         if ($TelldusLiveAccessToken -eq $null) {
@@ -33,24 +40,7 @@ function Get-TDSensorData
         
         [datetime] $TelldusDate="1970-01-01 00:00:00"
 
-        $TempData = $SensorData.data | where { $_.name -eq 'temp' }
-        $HumidityData = $SensorData.data | where { $_.name -eq 'humidity' }
-
-        if ($TempData) {
-            $Temparature = $TempData.value
-        }
-        else {
-            $Temparature = $null
-        }
-
-        if ($HumidityData) {
-            $Humidity = $HumidityData.value
-        }
-        else {
-            $Humidity = $null
-        }
-
-        [PSCustomObject] @{
+        $PropertiesToOutput = @{
             DeviceId = $SensorData.id
             Name = $SensorData.name
             ClientName = $SensorData.clientName
@@ -61,11 +51,20 @@ function Get-TDSensorData
             SensorId = $SensorData.sensorId
             TimeZoneOffset = $SensorData.timezoneoffset
             Battery = $SensorData.battery
-            Temperature = $Temparature
-            Humidity = $Humidity
-            Data = $SensorData.data
             KeepHistory = [bool] $SensorData.keepHistory
         }
+
+        if (-not $HideRawData.IsPresent) {
+            $PropertiesToOutput += @{ 'Data' = $SensorData.data }
+        }
+
+        $expandedProperties = GetTelldusProperty -Data $SensorData.data
+
+        foreach ($expandedProperty in $expandedProperties) {
+            $PropertiesToOutput += $expandedProperty
+        }
+        
+        New-Object -TypeName PSObject -Property $PropertiesToOutput
     }
 
     END { }

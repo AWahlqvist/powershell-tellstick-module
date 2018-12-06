@@ -5,9 +5,9 @@
 
 $ScriptRoot = $PSScriptRoot
 
-$ReleaseNotes = "Fixed issue with Set-TDSensor and `"special`" characters"
+$ReleaseNotes = "Post all properties from sensors."
 $ModuleName = 'AutomaTD'
-$ModuleVersion = '1.1.7'
+$ModuleVersion = '1.2.0'
 $CompatiblePSEditions = @('Core', 'Desktop')
 $PowerShellVersion = '5.1'
 $ModuleGuid = '7acb0966-268a-4bd9-8ce8-c546db8aa696'
