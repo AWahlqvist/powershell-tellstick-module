@@ -22,6 +22,7 @@ function GetTelldusProperty
                 'rtot'   { 'RainTotal' }
                 'wdir'   { 'WindDirection' }
                 'wavg'   { 'WindAverage' }
+                'wgust'  { 'WindGust' }
                 'watt'   { 'Watt' }
                 'lum'    { 'Luminance' }
                 default  { $KeyName }

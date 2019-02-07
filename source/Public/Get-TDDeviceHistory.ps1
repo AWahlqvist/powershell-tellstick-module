@@ -24,7 +24,7 @@ function Get-TDDeviceHistory
     }
 
     PROCESS {
-        $HistoryEvents = InvokeTelldusAction -URI "device/history`?id=$DeviceID"
+        $HistoryEvents = InvokeTelldusAction -URI "device/history?id=$DeviceID"
         
         foreach ($HistoryEvent in $HistoryEvents.history)
         {

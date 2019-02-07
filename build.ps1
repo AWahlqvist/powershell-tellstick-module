@@ -5,9 +5,9 @@
 
 $ScriptRoot = $PSScriptRoot
 
-$ReleaseNotes = "Fix for case sensitive match when specifying `"enforced`" properties"
+$ReleaseNotes = "New functions for getting schedules/events, a generic function to call any endpoint and a function that can take a backup. Other various enhancements."
 $ModuleName = 'AutomaTD'
-$ModuleVersion = '1.3.4'
+$ModuleVersion = '1.4.0'
 $CompatiblePSEditions = @('Core', 'Desktop')
 $PowerShellVersion = '5.1'
 $ModuleGuid = '7acb0966-268a-4bd9-8ce8-c546db8aa696'

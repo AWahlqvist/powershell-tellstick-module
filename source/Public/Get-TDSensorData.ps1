@@ -20,7 +20,6 @@ function Get-TDSensorData
 
     [CmdletBinding()]
     param(
-
       [Parameter(Mandatory=$True, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
       [Alias('id')]
       [string] $DeviceID,

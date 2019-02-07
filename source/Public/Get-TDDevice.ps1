@@ -16,7 +16,11 @@ function Get-TDDevice
     #>
 
     [CmdletBinding()]
-    Param()
+    Param(
+        [Parameter(Mandatory=$false, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [Alias('id')]
+        [string] $DeviceID
+    )
 
     BEGIN {
         if ($TelldusLiveAccessToken -eq $null) {
@@ -26,12 +30,20 @@ function Get-TDDevice
 
     PROCESS {
 
-        $DeviceList = InvokeTelldusAction -URI 'devices/list?supportedMethods=19'
+        if ($DeviceID) {
+            $response = InvokeTelldusAction -URI "device/info?id=$DeviceID&supportedMethods=19&extras=coordinate,metadata,timezone,transport,tzoffset"
+            $DeviceList = $response
+        }
+        else {
+            $response = InvokeTelldusAction -URI 'devices/list?supportedMethods=19'
+            $DeviceList = $response.device
+        }
 
-        foreach ($Device in $DeviceList.device) {
+        foreach ($Device in $DeviceList) {
 
-            $PropertiesToOutput = @{
-                                 'Name' = $Device.name;
+            $PropertiesToOutput = [ordered] @{
+                                 'Name' = $Device.name
+                                 'DeviceID' = $Device.id
                                  'State' = switch ($Device.state)
                                            {
                                                  1 { "On" }
@@ -39,9 +51,6 @@ function Get-TDDevice
                                                 16 { "Dimmed" }
                                                 default { "Unknown" }
                                            }
-                                 'DeviceID' = $Device.id;
-                             
-
                                  'Statevalue' = $Device.statevalue
                                  'Methods' = switch ($Device.methods)
                                              {
@@ -49,9 +58,8 @@ function Get-TDDevice
                                                 19 { "On/Off/Dim" }
                                                 default { "Unknown" }
                                              }
-                                 'Type' = $Device.type;
-                                 'Client' = $Device.client;
-                                 'ClientName' = $Device.clientName;
+                                 'Type' = $Device.type
+                                 'Client' = $Device.client
                                  'Online' = switch ($Device.online)
                                             {
                                                 0 { $false }
@@ -59,9 +67,37 @@ function Get-TDDevice
                                             }
                                  }
 
+            if ($Device.longitude) {
+                $PropertiesToOutput.Add('Longitude', $Device.longitude)
+            }
+
+            if ($Device.latitude) {
+                $PropertiesToOutput.Add('Latitude', $Device.latitude)
+            }
+
+            if ($Device.clientName) {
+                $PropertiesToOutput.Add('ClientName', $Device.clientName)
+            }
+
+            if ($Device.metadata) {
+                $PropertiesToOutput.Add('Metadata', $Device.metadata)
+            }
+
+            if ($Device.timezone) {
+                $PropertiesToOutput.Add('TimeZone', $Device.timezone)
+            }
+
+            if ($Device.transport) {
+                $PropertiesToOutput.Add('Transport', $Device.transport)
+            }
+
+            if ($Device.tzoffset) {
+                $PropertiesToOutput.Add('TimeOffset', $Device.tzoffset)
+            }
+
             $returnObject = New-Object -TypeName PSObject -Property $PropertiesToOutput
 
-            Write-Output $returnObject | Select-Object Name, DeviceID, State, Statevalue, Methods, Type, ClientName, Client, Online
+            $returnObject
         }
     }
 
